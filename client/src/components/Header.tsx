@@ -6,7 +6,7 @@ const Header = () => {
     return (
         <header className="border-b-2 py-3 px-2">
             <div className="mx-auto flex justify-between h-16  items-center gap-8 px-4 ">
-                <Link className="block font-bold text-5xl " href="/">
+                <Link className="block font-bold md:text-5xl text-3xl " href="/">
                     CodeBin
                 </Link>
                 <div className='flex items-center justify-center gap-5'>
