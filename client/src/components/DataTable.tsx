@@ -35,7 +35,6 @@ import { useEffect, useState } from "react"
 import { Input } from "./ui/input"
 import { TablePagination } from "./TablePagination"
 import { cn } from "@/lib/utils"
-import { getData } from "@/app/entries/page"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]

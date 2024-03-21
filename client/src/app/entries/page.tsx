@@ -1,70 +1,6 @@
-/* 
-import React from 'react'
-import {
-    Table,
-    TableCaption,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import Snippets from '@/components/Snippets';
-
-type snippets = {
-    id: number;
-    username: string;
-    language: string;
-    stdin: string;
-    sourceCode: string;
-    stdout: string | null;
-}
-export default async function Entries() {
-
-    const res = await fetch("http://localhost:5000/getAll", { cache: "no-store" })
-    let cacheOrNot = await res.json()
-    let allSnippets: snippets[] = []
-    if (cacheOrNot.db) {
-        console.log("from db")
-        allSnippets = cacheOrNot.db
-
-    }
-    else if (cacheOrNot.redis) {
-        console.log("from redis")
-        allSnippets = cacheOrNot.redis.map((snippet: string) => JSON.parse(snippet))
-        allSnippets.sort((a, b) => a.id - b.id);
-    }
-
-   
-
-
-
-
-
-
-    return (
-        <div className='w-10/12 mx-auto'>
-            <Table>
-                <TableCaption>All submitted entries</TableCaption>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[100px]">Username</TableHead>
-                        <TableHead>Language</TableHead>
-                        <TableHead>stdin</TableHead>
-                        <TableHead className="text-left">Source Code</TableHead>
-                        <TableHead className="">stdout</TableHead>
-
-                    </TableRow>
-                </TableHeader>
-                 <Snippets  data={allSnippets}/>    
-                
-            </Table>
-
-        </div>
-    )
-}
- */
-
 import { columns } from "@/components/Columns";
 import { DataTable } from "@/components/DataTable";
+import { notFound } from "next/navigation";
 
 
 
@@ -77,37 +13,25 @@ export type snippets = {
     stdin: string;
     sourceCode: string;
     stdout: string | null;
-
 }
 
 
 
+export default async function Page() {
 
-export default async function DemoPage() {
+
     const data = await getData()
 
-    return (
-        <div className="container mx-2 md:mx-auto  py-10">
-            <DataTable columns={columns} data={data} />
-        </div>
-    )
-}
 
-
-
-export async function getData() {
-    const res = await fetch(`${process.env.URL}/getAll`, { cache: "no-store" })
-    let cacheOrNot = await res.json()
     let allSnippets: snippets[];
 
-    if (cacheOrNot.db) {
-        console.log("from db")
-        allSnippets = cacheOrNot.db
+
+    if (data.db) {
+        allSnippets = data.db
 
     }
     else {
-        console.log("from redis")
-        allSnippets = cacheOrNot.redis.map((snippet: string) => JSON.parse(snippet))
+        allSnippets = data.redis.map((snippet: string) => JSON.parse(snippet))
         allSnippets.sort((a, b) => b.id - a.id);
     }
 
@@ -124,10 +48,29 @@ export async function getData() {
             second: "2-digit",
         })
         snippet.stdout = snippet.stdout ? removeNonPrintableChars(snippet.stdout) : "waiting"
-    });
-    return allSnippets
+    })
+
+    return (
+        <div className="container mx-2 md:mx-auto  py-10">
+            <DataTable columns={columns} data={allSnippets} />
+        </div>
+    )
 }
 
+
+
+
+const getData=async()=> {
+    try {
+
+        const res = await fetch(`${process.env.URL}/getAll`, { cache: "no-store" })
+        return res.json()
+    }
+    catch (error) {
+        console.log(error)
+        return notFound()
+    }
+}
 
 
 function removeNonPrintableChars(str: string) {
