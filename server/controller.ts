@@ -24,7 +24,6 @@ const codeQueue = new Queue("codeQueue", {
 
 
 
-export const a="hello"
 
 export const addSnippet = async (req: Request, res: Response) => {
     const { name, lang, stdin, code } = req.body;
@@ -47,7 +46,6 @@ export const addSnippet = async (req: Request, res: Response) => {
        
         await client.set(`snip:${codeSnippet.id}`, JSON.stringify(codeSnippet), "EX", 20);
 
-        console.log(codeSnippet);
         return res.json({ message: "Success" });
     } catch (err) {
         console.error(err);
@@ -61,13 +59,10 @@ export const getAllSnippets = async (req: Request, res: Response) => {
         const keys = await client.keys("snip:*");
 
         if (keys.length > 1) {
-            console.log("from redis");
             const redisValues = await client.mget(keys);
-            console.log("send");
             return res.json({ "redis": redisValues });
         }
         else {
-            console.log("not redis");
 
             codeSnippets = await prisma.codeSnippet.findMany({
                 orderBy:{
@@ -77,7 +72,6 @@ export const getAllSnippets = async (req: Request, res: Response) => {
             for (const snippet of codeSnippets) {
                 await client.set(`snip:${snippet.id}`, JSON.stringify(snippet), "EX", 20);
             }
-            console.log("send");
 
             return res.json({ "db": codeSnippets });
         }

@@ -2,7 +2,7 @@ import { Job, Worker } from "bullmq";
 import Redis from "ioredis";
 import Docker from "dockerode";
 import { exec } from "child_process";
-import { existsSync, mkdirSync, unlinkSync, writeFile, writeFileSync } from "fs";
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
 import prisma from "./db";
 
 type LanguageExtensions = {
@@ -16,15 +16,14 @@ const client = new Redis({
     maxRetriesPerRequest: null,
 });
 
-const d = new Docker();
 
+const docker = new Docker();
 
 const runCode = async (language: string) => {
-    if (language === "c" || language==="c++") {
+    if (language === "c" || language === "c++") {
         language = "cpp";
     }
 
-    const docker = new Docker();
 
     try {
         let returnChunks = ""
@@ -32,6 +31,7 @@ const runCode = async (language: string) => {
             Image: `${language}-runner`,
             AttachStdout: true,
             AttachStderr: true,
+            
             HostConfig: {
                 Binds: [`${__dirname}/Code:/judge`]
             }
@@ -56,7 +56,6 @@ const runCode = async (language: string) => {
 
         await container.remove();
 
-        console.log('Container execution completed.');
 
 
         return returnChunks
@@ -68,9 +67,7 @@ const runCode = async (language: string) => {
 
 const work = async (job: Job) => {
     let { id, username, language, stdin, sourceCode } = job.data
-    console.log(job.data)
-    
-    const code=handleInput(sourceCode,stdin)
+    const code = handleInput(sourceCode, stdin)
 
     const languageExtensions: LanguageExtensions = {
         'javascript': 'js',
@@ -80,26 +77,30 @@ const work = async (job: Job) => {
         'c': 'c'
     };
 
+    if (!languageExtensions[language.toLowerCase()]){
+        return
+    }
+
     
     const extension = languageExtensions[language.toLowerCase()];
-    console.log(code,extension)
 
     const filePath = `${__dirname}/Code/`
-    const fileName = filePath + `code.${extension}`;
+    const fileName = filePath + `code.${extension}`;languageExtensions[language.toLowerCase()]
 
     if (!existsSync(filePath)) {
         mkdirSync(filePath);
     }
 
+
     writeFileSync(fileName, code);
 
-    let output = await runCode(language.toLowerCase()) 
-  
+    let output = await runCode(language.toLowerCase())
 
-    if (output==""){
-        output="No output available to print"
+
+    if (output == "") {
+        output = "No output available to print"
     }
-    const newSnippet=await prisma.codeSnippet.update({
+    const newSnippet = await prisma.codeSnippet.update({
         data: {
             stdout: output
         },
@@ -140,8 +141,6 @@ const initialSetup = async () => {
                 console.error(`exec error: ${err}`);
                 return;
             }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
         })
 
 
@@ -150,22 +149,24 @@ const initialSetup = async () => {
 
 
 
-function handleInput(source:string, input:string) {
+function handleInput(source: string, input: string) {
     const placeholders = source.match(/\$(\w+)/g);
-    const inputData=input.split(",")
-   
-   
-    
+    const inputData = input.split(",")
+
+
+
     if (placeholders) {
-        if (inputData.length!==placeholders.length){
+        if (inputData.length !== placeholders.length) {
             console.log("invalid number of codes")
         }
-        let idx=0
+        let idx = 0
         placeholders.forEach(placeholder => {
-            source=source.replace(placeholder,inputData[idx])
+            source = source.replace(placeholder, inputData[idx])
             idx++
         });
     }
-    
+
     return source;
 }
+
+initialSetup()

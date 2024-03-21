@@ -17,12 +17,13 @@ export type snippets = {
 
 
 
+
+
 export default async function Page() {
 
-
-    const data = await getData()
-
-
+    let res = await fetch(`${process.env.URL}/getAll`, { cache: "no-store" })
+    if (!res.ok) return notFound()
+    const data=await res.json()
     let allSnippets: snippets[];
 
 
@@ -57,20 +58,6 @@ export default async function Page() {
     )
 }
 
-
-
-
-const getData=async()=> {
-    try {
-
-        const res = await fetch(`${process.env.URL}/getAll`, { cache: "no-store" })
-        return res.json()
-    }
-    catch (error) {
-        console.log(error)
-        return notFound()
-    }
-}
 
 
 function removeNonPrintableChars(str: string) {

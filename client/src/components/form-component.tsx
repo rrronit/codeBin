@@ -15,13 +15,19 @@ export async function FormComponent() {
     const lang = formData.get("language")
     const stdin = formData.get("stdin")
     const code = formData.get("code")
-    const codeDetail = {
-      name,
-      lang,
-      stdin,
-      code
+   
+  
+    if (!name || !lang ||  !code) {
+      return;
     }
+    
 
+  const codeDetail = {
+    name,
+    lang,
+    stdin:stdin ? stdin : "",
+    code
+  }
 
 
     const res = await fetch(`${process.env.URL}/add`, {
