@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
+import { Button } from './ui/button'
 
 const Header = () => {
     return (
@@ -8,8 +9,14 @@ const Header = () => {
                 <Link className="block font-bold text-5xl " href="/">
                     CodeBin
                 </Link>
+                <div className='flex items-center justify-center gap-5'>
+                <Button>
+                <Link href={"/entries"} > 
+                Entries
+                </Link>
+                </Button>
                 <Link href={"https://github.com/rrronit/codebin"} target='blank'>
-                <div>
+                
                     <svg fill='white'  xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="50" height="50" viewBox="0 0 50 50">
                         <path d="M17.791,46.836C18.502,46.53,19,45.823,19,45v-5.4c0-0.197,0.016-0.402,0.041-0.61C19.027,38.994,
                         19.014,38.997,19,39 c0,0-3,0-3.6,0c-1.5,0-2.8-0.6-3.4-1.8c-0.7-1.3-1-3.5-2.8-4.7C8.9,32.3,9.1,32,9.7,
@@ -22,8 +29,9 @@ const Header = () => {
                         0.661-0.151,0.987c-1.912-0.306-5.171-0.664-8.879-0.682C35.112,30.873,31.557,32.75,26,32.969V33 c2.6,0,5,3.9,5,6.6V45c0,0.823,0.498,1.53,1.209,1.836C41.37,43.804
                         ,48,35.164,48,25C48,12.318,37.683,2,25,2S2,12.318,2,25 C2,35.164,8.63,43.804,17.791,46.836z"></path>
                     </svg>
-                </div>
+            
                 </Link>
+                </div>
             </div>
         </header>
     )

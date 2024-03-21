@@ -96,7 +96,7 @@ export default async function DemoPage() {
 
 
 export async function getData() {
-    const res = await fetch("http://localhost:5000/getAll", { cache: "no-store" })
+    const res = await fetch(`${process.env.URL}/getAll`, { cache: "no-store" })
     let cacheOrNot = await res.json()
     let allSnippets: snippets[];
 
