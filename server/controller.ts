@@ -4,13 +4,6 @@ import Redis from "ioredis"
 import { Queue  } from "bullmq";
 
 
-/*  const client = new Redis({
-    host:"us1-new-shark-37643.upstash.io",
-    password:"b1aebdc65c304ecdbdb6b8b51115c057",
-    port:37643,
-    maxRetriesPerRequest:null,
-    tls:{}
-});  */
 
 const client=new Redis({
     host:"localhost",
@@ -26,6 +19,7 @@ const codeQueue = new Queue("codeQueue", {
 
 
 export const addSnippet = async (req: Request, res: Response) => {
+
     const { name, lang, stdin, code } = req.body;
 
     if (!name || !lang || !stdin || !code) {
@@ -37,16 +31,17 @@ export const addSnippet = async (req: Request, res: Response) => {
             data: {
                 username: name,
                 language: lang,
-                stdin,
+                stdin:stdin || " ",
                 sourceCode: code
             }
         });
 
-        const A=await codeQueue.add(`snip:${codeSnippet.id}`, codeSnippet)
-       
-        await client.set(`snip:${codeSnippet.id}`, JSON.stringify(codeSnippet), "EX", 20);
-
-        return res.json({ message: "Success" });
+        
+        await codeQueue.add(`snip:${codeSnippet.id}`, codeSnippet)
+        
+        await client.set(`snip:${codeSnippet.id}`, JSON.stringify(codeSnippet), "EX", 200);
+        res.json({ message: "Success" });
+        
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Something went wrong" });
@@ -70,7 +65,7 @@ export const getAllSnippets = async (req: Request, res: Response) => {
                 }
             });
             for (const snippet of codeSnippets) {
-                await client.set(`snip:${snippet.id}`, JSON.stringify(snippet), "EX", 20);
+                await client.set(`snip:${snippet.id}`, JSON.stringify(snippet), "EX", 200);
             }
 
             return res.json({ "db": codeSnippets });

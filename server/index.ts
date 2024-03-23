@@ -11,6 +11,7 @@ app.use(express.json());
 
 
 app.post("/add",addSnippet)
+
 app.get("/getAll",getAllSnippets)
 
 

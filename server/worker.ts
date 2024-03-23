@@ -3,7 +3,14 @@ import Redis from "ioredis";
 import Docker from "dockerode";
 import { exec } from "child_process";
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
-import prisma from "./db";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient()
+
+
+
+
+
 
 type LanguageExtensions = {
     [key: string]: string;
@@ -31,7 +38,7 @@ const runCode = async (language: string) => {
             Image: `${language}-runner`,
             AttachStdout: true,
             AttachStderr: true,
-            
+
             HostConfig: {
                 Binds: [`${__dirname}/Code:/judge`]
             }
@@ -77,28 +84,41 @@ const work = async (job: Job) => {
         'c': 'c'
     };
 
-    if (!languageExtensions[language.toLowerCase()]){
-        return
-    }
 
-    
     const extension = languageExtensions[language.toLowerCase()];
 
     const filePath = `${__dirname}/Code/`
-    const fileName = filePath + `code.${extension}`;languageExtensions[language.toLowerCase()]
+    const fileName = filePath + `code.${extension}`; languageExtensions[language.toLowerCase()]
 
     if (!existsSync(filePath)) {
         mkdirSync(filePath);
     }
+   
+   
+   //this was added after submission date to fix the while true error
 
+    const timeout = (): Promise<string> => {
+        return new Promise(resolve => setTimeout(() => resolve("Timeout"), 2000))
+    }
 
     writeFileSync(fileName, code);
 
-    let output = await runCode(language.toLowerCase())
+    let output = await Promise.race([
+        runCode(language.toLowerCase()),
+        timeout()
+    ]);
 
 
-    if (output == "") {
-        output = "No output available to print"
+    //this is before change 
+
+    //let output=await runCode(language.toLowerCase())
+
+    if (output === "Timeout") {
+        output = "Code execution timed out after 2 seconds";
+    }
+
+    if (output === "") {
+        output = "No output available to print";
     }
     const newSnippet = await prisma.codeSnippet.update({
         data: {
@@ -142,9 +162,9 @@ const initialSetup = async () => {
                 return;
             }
         })
-
-
     })
+    console.log(await prisma.codeSnippet.findMany())
+
 }
 
 
@@ -156,6 +176,7 @@ function handleInput(source: string, input: string) {
 
 
     if (placeholders) {
+
         if (inputData.length !== placeholders.length) {
             console.log("invalid number of codes")
         }
@@ -165,7 +186,6 @@ function handleInput(source: string, input: string) {
             idx++
         });
     }
-
     return source;
 }
 

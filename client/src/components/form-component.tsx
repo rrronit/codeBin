@@ -25,7 +25,7 @@ export async function FormComponent() {
   const codeDetail = {
     name,
     lang,
-    stdin:stdin ? stdin : "",
+    stdin:stdin ? stdin : " ",
     code
   }
 
