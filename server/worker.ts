@@ -61,6 +61,14 @@ const runCode = async (language: string) => {
         });
         await container.wait();
 
+        //this part was added after submission date because of while true error
+        const timeout = setTimeout(async () => {
+            await container.remove();
+            returnChunks = "Timeout"
+        }, 3000);
+
+        clearTimeout(timeout)
+
         await container.remove();
 
 
@@ -93,32 +101,15 @@ const work = async (job: Job) => {
     if (!existsSync(filePath)) {
         mkdirSync(filePath);
     }
-   
-   
-   //this was added after submission date to fix the while true error
 
-    const timeout = (): Promise<string> => {
-        return new Promise(resolve => setTimeout(() => resolve("Timeout"), 2000))
-    }
 
     writeFileSync(fileName, code);
 
-    let output = await Promise.race([
-        runCode(language.toLowerCase()),
-        timeout()
-    ]);
+    let output = await runCode(language.toLowerCase())
 
 
-    //this is before change 
-
-    //let output=await runCode(language.toLowerCase())
-
-    if (output === "Timeout") {
-        output = "Code execution timed out after 2 seconds";
-    }
-
-    if (output === "") {
-        output = "No output available to print";
+    if (output == "") {
+        output = "No output available to print"
     }
     const newSnippet = await prisma.codeSnippet.update({
         data: {
@@ -169,7 +160,7 @@ const initialSetup = async () => {
 
 
 
-function handleInput(source: string, input: string) {
+const handleInput = (source: string, input: string) => {
     const placeholders = source.match(/\$(\w+)/g);
     const inputData = input.split(",")
 
